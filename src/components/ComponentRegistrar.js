@@ -85,7 +85,7 @@ class ComponentRegistrar {
 
         this.registerComponent(component);
 
-        this.mix.listen('internal:gather-dependencies', () => {
+        this.mix.listen('internal:gather-dependencies', async () => {
             if (!component.activated && !component.passive) {
                 return;
             }
@@ -95,33 +95,33 @@ class ComponentRegistrar {
             }
 
             Dependencies.queue(
-                component.dependencies(),
+                await component.dependencies(),
                 component.requiresReload || false
             );
         });
 
-        this.mix.listen('init', () => {
+        this.mix.listen('init', async () => {
             if (!component.activated && !component.passive) {
                 return;
             }
 
-            component.boot && component.boot();
-            component.babelConfig && this.applyBabelConfig(component);
+            await (component.boot && component.boot());
+            await (component.babelConfig && this.applyBabelConfig(component));
 
             this.mix.listen('loading-entry', entry => {
-                component.webpackEntry && component.webpackEntry(entry);
+                return component.webpackEntry && component.webpackEntry(entry);
             });
 
             this.mix.listen('loading-rules', rules => {
-                component.webpackRules && this.applyRules(rules, component);
+                return component.webpackRules && this.applyRules(rules, component);
             });
 
             this.mix.listen('loading-plugins', plugins => {
-                component.webpackPlugins && this.applyPlugins(plugins, component);
+                return component.webpackPlugins && this.applyPlugins(plugins, component);
             });
 
             this.mix.listen('configReady', config => {
-                component.webpackConfig && component.webpackConfig(config);
+                return component.webpackConfig && component.webpackConfig(config);
             });
         });
 
@@ -149,7 +149,7 @@ class ComponentRegistrar {
          */
         const register = name => {
             this.components[name] = (...args) => {
-                this.context.components.record(name, component);
+                this.mix.components.record(name, component);
 
                 component.caller = name;
 
@@ -199,10 +199,10 @@ class ComponentRegistrar {
      *
      * @param {Object} component
      */
-    applyBabelConfig(component) {
+    async applyBabelConfig(component) {
         this.mix.config.babelConfig = mergeWebpackConfig(
             this.mix.config.babelConfig,
-            component.babelConfig()
+            await component.babelConfig()
         );
     }
 
