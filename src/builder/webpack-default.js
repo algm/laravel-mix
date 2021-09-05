@@ -4,6 +4,7 @@ let TerserPlugin = require('terser-webpack-plugin');
 /**
  *
  * @param {import("../Mix")} mix
+ * @returns {import("webpack").Configuration & {devServer?: import("webpack").WebpackOptionsNormalized["devServer"]}}
  */
 module.exports = function (mix) {
     // TODO: Remove in Mix 7 -- Here for backwards compat if a plugin requires this file
@@ -51,6 +52,7 @@ module.exports = function (mix) {
 
         devtool: mix.config.sourcemaps,
 
+        // @ts-ignore
         devServer: {
             headers: {
                 'Access-Control-Allow-Origin': '*'

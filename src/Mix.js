@@ -29,12 +29,18 @@ class Mix {
         this.config = buildConfig(this);
 
         this.chunks = new Chunks(this);
-        this.components = new Components();
         this.dispatcher = new Dispatcher();
-        this.manifest = new Manifest();
         this.paths = new Paths();
+
+        this.components = new Components();
+        this.manifest = new Manifest();
+
+        // TODO: Rework the way registration works
+        // Registration should happen only once at Mix object level
+        // API initialization should happen per build context
         this.registrar = new ComponentRegistrar(this);
         this.webpackConfig = new WebpackConfig(this);
+
         this.hot = new HotReloading(this);
         this.resolver = new Resolver();
 
@@ -133,7 +139,7 @@ class Mix {
     }
 
     /**
-     * @returns {import("../types/index")}
+     * @returns {import("laravel-mix")}
      */
     get api() {
         if (!this._api) {

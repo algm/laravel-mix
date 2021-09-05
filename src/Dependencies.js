@@ -59,7 +59,7 @@ class Dependencies {
      * @param {Boolean} abortOnComplete
      */
     install(abortOnComplete = false) {
-        let dependencies = this.dependencies.filter(dep => !dep.check());
+        let dependencies = this.dependencies.filter(dep => dep.check && !dep.check());
 
         if (!dependencies.length) {
             return;
@@ -92,14 +92,14 @@ class Dependencies {
      * @param {DependencyObject[]}  dependencies
      */
     buildInstallCommand(dependencies) {
-        dependencies = dependencies.map(dep => dep.package).join(' ');
+        const list = dependencies.map(dep => dep.package).join(' ');
 
         switch (PackageManager.detect()) {
             case 'npm':
-                return `npm install ${dependencies} --save-dev --legacy-peer-deps`;
+                return `npm install ${list} --save-dev --legacy-peer-deps`;
 
             case 'yarn':
-                return `yarn add ${dependencies} --dev`;
+                return `yarn add ${list} --dev`;
         }
     }
 
@@ -127,11 +127,8 @@ class Dependencies {
      * @returns {DependencyObject}
      */
     normalize(dep) {
-        if (typeof dep === 'string') {
-            dep = { package: dep };
-        }
-
-        const name = dep.package.replace(/(?!^@)@.+$/, '');
+        const depObj = typeof dep === 'string' ? { package: dep } : dep;
+        const name = depObj.package.replace(/(?!^@)@.+$/, '');
 
         function isInstalled() {
             try {
@@ -144,11 +141,11 @@ class Dependencies {
         }
 
         function isValid() {
-            return dep.check ? dep.check(name) : true;
+            return depObj.check ? depObj.check(name) : true;
         }
 
         return {
-            ...dep,
+            ...depObj,
             check: () => isInstalled() && isValid()
         };
     }

@@ -16,7 +16,7 @@ class Dispatcher {
      * @param {Handler}       handler
      */
     listen(events, handler) {
-        events = [].concat(events);
+        events = Array.isArray(events) ? events : [events];
 
         events.forEach(event => {
             this.events[event] = (this.events[event] || []).concat(handler);
@@ -29,7 +29,7 @@ class Dispatcher {
      * Trigger all handlers for the given event.
      *
      * @param {string} event
-     * @param {*} [data]
+     * @param {any} [data]
      */
     async fire(event, data) {
         if (!this.events[event]) return false;

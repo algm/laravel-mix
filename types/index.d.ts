@@ -8,7 +8,7 @@ import { TransformOptions as BabelConfig } from '@babel/core';
 import { Options as BrowserSyncConfig } from './browsersync';
 import * as ExtractTypes from './extract';
 import { MixConfig } from './config';
-import { Component } from './component';
+import { Component as MixComponent } from './component';
 
 // @ts-ignore - May not be installed initially
 import { AcceptedPlugin } from 'postcss';
@@ -34,7 +34,7 @@ interface Api {
     inProduction(): boolean;
 
     /** Extend the mix api. This makes the component available as mix.name_here */
-    extend(name: string, component: Component): Api;
+    extend(name: string, component: MixComponent): Api;
 
     /** Wait for a callback before starting the build */
     before(callback: (Mix: MixHelpers) => void | Promise<void>): Api;
@@ -294,9 +294,11 @@ interface Api {
     vue(config?: VueConfig): Api;
 }
 
+type Component = MixComponent
+
 declare const exports: Api;
 declare namespace exports {
-    export { Api, VueConfig };
+    export { Api, VueConfig, Component };
 }
 
 declare global {

@@ -1,5 +1,5 @@
 let Log = require('../Log');
-let collect = require('collect.js');
+const VersionFilesTask = require('../tasks/VersionFilesTask');
 const { debounce } = require('lodash');
 
 class CustomTasksPlugin {
@@ -94,9 +94,9 @@ class CustomTasksPlugin {
      * @param {Task} task If specified, only assets of this task will be minified
      */
     async minifyAssets(task = null) {
-        const assets = collect(task ? [task] : this.mix.tasks)
-            .where('constructor.name', '!==', 'VersionFilesTask')
-            .flatMap(({ assets }) => assets);
+        const assets = task ? [task] : this.mix.tasks
+            .filter(task => !(task instanceof VersionFilesTask))
+            .flatMap(task => task.assets);
 
         const tasks = assets.map(async asset => {
             try {
@@ -118,7 +118,7 @@ class CustomTasksPlugin {
      * Version all files that are present in the manifest.
      */
     applyVersioning() {
-        collect(this.mix.manifest.get()).each((value, key) =>
+        Object.keys(this.mix.manifest.get()).forEach(path => {
             this.mix.manifest.hash(key)
         );
     }

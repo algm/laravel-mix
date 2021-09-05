@@ -1,4 +1,14 @@
-const argv = require('yargs').argv;
+// @ts-check
+
+const yargs = require('yargs/yargs');
+const argv = yargs(process.argv.slice(2))
+    .options({
+        https: { type: 'boolean', default: false },
+        hmrPort: { type: 'string', default: '8080' },
+        p: { type: 'boolean', default: false },
+        hot: { type: 'boolean', default: false }
+    })
+    .parseSync();
 
 /** @typedef {import("@babel/core").TransformOptions} BabelConfig */
 
@@ -16,24 +26,22 @@ module.exports = function (mix) {
          *
          * @type {Boolean}
          */
-        production: process.env.NODE_ENV === 'production' || process.argv.includes('-p'),
+        production: process.env.NODE_ENV === 'production' || argv.p,
 
         /**
          * Determine if we should enable hot reloading.
          *
          * @type {Boolean}
          */
-        hmr: process.argv.includes('--hot'),
+        hmr: argv.hot,
 
         /**
          * Hostname and port used for the hot reload module
-         *
-         * @type {Object}
          */
         hmrOptions: {
-            https: !!argv.https,
+            https: argv.https,
             host: 'localhost',
-            port: !!argv.hmrPort ? argv.hmrPort : '8080'
+            port: argv.hmrPort
         },
 
         /**
@@ -41,7 +49,7 @@ module.exports = function (mix) {
          *
          * See: https://github.com/postcss/postcss/blob/master/docs/plugins.md
          *
-         * @type {Array}
+         * @type {import('postcss').AcceptedPlugin[]}
          */
         postCss: [],
 
@@ -49,7 +57,7 @@ module.exports = function (mix) {
          * Determine if we should enable autoprefixer by default.
          * May be set to false to disable it.
          *
-         * @type {Boolean|Object}
+         * @type {false|import('autoprefixer').Options}
          */
         autoprefixer: {},
 
@@ -72,7 +80,7 @@ module.exports = function (mix) {
         /**
          * Determine if error notifications should be displayed for each build.
          *
-         * @type {Boolean}
+         * @type {false | {onSuccess: boolean, onFailure: boolean}}
          */
         notifications: {
             onSuccess: true,
@@ -82,7 +90,7 @@ module.exports = function (mix) {
         /**
          * Determine if sourcemaps should be created for the build.
          *
-         * @type {Boolean}
+         * @type {false | string}
          */
         sourcemaps: false,
 
@@ -109,8 +117,6 @@ module.exports = function (mix) {
 
         /**
          * File Loader directory defaults.
-         *
-         * @type {Object}
          */
         fileLoaderDirs: {
             images: 'images',
@@ -139,14 +145,12 @@ module.exports = function (mix) {
          *
          * See: https://github.com/webpack-contrib/terser-webpack-plugin#options
          *
-         * @type {Object}
+         * @type {import('../types/terser').TerserPluginOptions}
          */
         terser: {
             parallel: true,
             terserOptions: {
-                compress: {
-                    warnings: false
-                },
+                compress: true,
                 output: {
                     comments: false
                 }
@@ -159,7 +163,7 @@ module.exports = function (mix) {
          *
          * See: https://cssnano.co/optimisations/
          *
-         * @type {Boolean|Object}
+         * @type {false|Object}
          */
         cssNano: {},
 

@@ -66,10 +66,10 @@ class ComponentRegistrar {
     /**
      * Install a component.
      *
-     * @param {import("../../types/component").Component} ComponentDefinition
+     * @param {import("laravel-mix").Component} ComponentDefinition
      */
     install(ComponentDefinition) {
-        /** @type {import("../../types/component").Component} */
+        /** @type {import("laravel-mix").Component} */
         let component;
 
         // If we're extending from the internal `Component` class then we provide the mix API object

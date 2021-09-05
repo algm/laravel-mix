@@ -244,6 +244,10 @@ class CssWebpackConfig extends AutomaticComponent {
         return loaders;
     }
 
+    /**
+     *
+     * @param {Record<string, string|string[]>} styles
+     */
     static normalizeGlobalStyles(styles) {
         // Backwards compat with existing Vue globalStyles:
         // A string only is supported for sass / scss.
@@ -255,7 +259,9 @@ class CssWebpackConfig extends AutomaticComponent {
         }
 
         return mapValues(styles, files => {
-            return Array.wrap(files).map(file => Mix.paths.root(file));
+            files = Array.isArray(files) ? files : [files];
+
+            return files.map(file => Mix.paths.root(file));
         });
     }
 }
