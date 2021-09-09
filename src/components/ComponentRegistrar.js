@@ -85,7 +85,7 @@ class ComponentRegistrar {
 
         this.registerComponent(component);
 
-        Mix.listen('internal:gather-dependencies', () => {
+        this.mix.listen('internal:gather-dependencies', () => {
             if (!component.activated && !component.passive) {
                 return;
             }
@@ -100,7 +100,7 @@ class ComponentRegistrar {
             );
         });
 
-        Mix.listen('init', () => {
+        this.mix.listen('init', () => {
             if (!component.activated && !component.passive) {
                 return;
             }
@@ -108,21 +108,19 @@ class ComponentRegistrar {
             component.boot && component.boot();
             component.babelConfig && this.applyBabelConfig(component);
 
-            Mix.listen('loading-entry', entry => {
-                if (component.webpackEntry) {
-                    component.webpackEntry(entry);
-                }
+            this.mix.listen('loading-entry', entry => {
+                component.webpackEntry && component.webpackEntry(entry);
             });
 
-            Mix.listen('loading-rules', rules => {
+            this.mix.listen('loading-rules', rules => {
                 component.webpackRules && this.applyRules(rules, component);
             });
 
-            Mix.listen('loading-plugins', plugins => {
+            this.mix.listen('loading-plugins', plugins => {
                 component.webpackPlugins && this.applyPlugins(plugins, component);
             });
 
-            Mix.listen('configReady', config => {
+            this.mix.listen('configReady', config => {
                 component.webpackConfig && component.webpackConfig(config);
             });
         });
@@ -136,41 +134,48 @@ class ComponentRegistrar {
      * @param {Object} component
      */
     registerComponent(component) {
-        []
-            .concat(
-                typeof component.name === 'function'
-                    ? component.name()
-                    : component.constructor.name.replace(/^([A-Z])/, letter =>
+        const names =
+            typeof component.name === 'function'
+                ? [].concat(component.name())
+                : [
+                      component.constructor.name.replace(/^([A-Z])/, letter =>
                           letter.toLowerCase()
                       )
-            )
-            .forEach(name => {
-                this.components[name] = (...args) => {
-                    Mix.components.record(name, component);
+                  ];
 
-                    component.caller = name;
+        /**
+         *
+         * @param {string} name
+         */
+        const register = name => {
+            this.components[name] = (...args) => {
+                this.context.components.record(name, component);
 
-                    component.register && component.register(...args);
+                component.caller = name;
 
-                    component.activated = true;
+                component.register && component.register(...args);
 
-                    return this.components;
-                };
+                component.activated = true;
 
-                // If we're dealing with a passive component that doesn't
-                // need to be explicitly triggered by the user, we'll
-                // call it now.
-                if (component.passive) {
-                    this.components[name]();
-                }
+                return this.components;
+            };
 
-                // Components can optionally write to the Mix API directly.
-                if (component.mix) {
-                    Object.keys(component.mix()).forEach(name => {
-                        this.components[name] = component.mix()[name];
-                    });
-                }
-            });
+            // If we're dealing with a passive component that doesn't
+            // need to be explicitly triggered by the user, we'll
+            // call it now.
+            if (component.passive) {
+                this.components[name]();
+            }
+
+            // Components can optionally write to the Mix API directly.
+            if (component.mix) {
+                Object.keys(component.mix()).forEach(name => {
+                    this.components[name] = component.mix()[name];
+                });
+            }
+        };
+
+        names.forEach(name => register(name));
     }
 
     /**
@@ -195,8 +200,8 @@ class ComponentRegistrar {
      * @param {Object} component
      */
     applyBabelConfig(component) {
-        Config.babelConfig = mergeWebpackConfig(
-            Config.babelConfig,
+        this.mix.config.babelConfig = mergeWebpackConfig(
+            this.mix.config.babelConfig,
             component.babelConfig()
         );
     }
@@ -205,24 +210,26 @@ class ComponentRegistrar {
      *
      * Apply the webpack rules for the component.
      *
+     * @param {any[]} rules
      * @param {Object} component
      */
-    applyRules(rules, component) {
-        tap(component.webpackRules(), newRules => {
-            newRules && rules.push(...[].concat(newRules));
-        });
+    async applyRules(rules, component) {
+        const newRules = component.webpackRules();
+
+        newRules && rules.push(...[].concat(newRules));
     }
 
     /**
      *
      * Apply the webpack plugins for the component.
      *
+     * @param {any[]} plugins
      * @param {Object} component
      */
     applyPlugins(plugins, component) {
-        tap(component.webpackPlugins(), newPlugins => {
-            newPlugins && plugins.push(...[].concat(newPlugins));
-        });
+        const newPlugins = component.webpackPlugins();
+
+        newPlugins && plugins.push(...[].concat(newPlugins));
     }
 }
 
