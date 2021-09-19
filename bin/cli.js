@@ -142,21 +142,22 @@ async function executeScript(cmd, opts, args = []) {
  */
 function commandScript(cmd, opts) {
     const showProgress = isTTY() && opts.progress;
+    const binPath = path.join(__dirname, './webpack-cli.js');
 
     if (cmd === 'build') {
         if (showProgress) {
-            return 'npx webpack --progress';
+            return `node ${binPath} --progress`;
         }
 
-        return 'npx webpack';
+        return `node ${binPath}`;
     } else if (cmd === 'watch' && !opts.hot) {
         if (showProgress) {
-            return 'npx webpack --progress --watch';
+            return `node ${binPath} --progress --watch`;
         }
 
-        return 'npx webpack --watch';
+        return `node ${binPath} --watch`;
     } else if (cmd === 'watch' && opts.hot) {
-        return 'npx webpack serve --hot' + (opts.https ? ' --https' : '');
+        return `node ${binPath} serve --hot ${opts.https ? ' --https' : ''}`;
     }
 }
 
