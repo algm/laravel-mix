@@ -19,7 +19,7 @@ test('JS compilation with vendor extraction config', async t => {
     assert.fileExists(`test/fixtures/app/dist/js/app.js`, t);
 
     // We extracted vue to the library file
-    assert.fileContains(`test/fixtures/app/dist/js/libraries.js`, 'vue2', t);
+    assert.fileContains(`test/fixtures/app/dist/js/libraries.js`, 'Vue.js v2', t);
 
     // But not core-js
     assert.fileContains(`test/fixtures/app/dist/js/app.js`, 'core-js', t);
@@ -37,7 +37,7 @@ test('vendor extraction with no requested JS compilation will throw an error', a
 test('JS compilation with vendor extraction with default config', async t => {
     mix.js(`test/fixtures/app/src/extract/app.js`, 'js')
         .vue({ version: 2 })
-        .extract(['vue2']);
+        .extract(['vue2', 'vue@2.6.14']);
 
     await webpack.compile();
 
@@ -45,7 +45,7 @@ test('JS compilation with vendor extraction with default config', async t => {
     assert.fileExists(`test/fixtures/app/dist/js/vendor.js`, t);
     assert.fileExists(`test/fixtures/app/dist/js/app.js`, t);
 
-    assert.fileContains(`test/fixtures/app/dist/js/vendor.js`, 'vue2', t);
+    assert.fileContains(`test/fixtures/app/dist/js/vendor.js`, 'Vue.js v2', t);
 });
 
 test('JS compilation with total vendor extraction', async t => {
@@ -57,7 +57,7 @@ test('JS compilation with total vendor extraction', async t => {
     assert.fileExists(`test/fixtures/app/dist/js/vendor.js`, t);
     assert.fileExists(`test/fixtures/app/dist/js/app.js`, t);
 
-    assert.fileContains(`test/fixtures/app/dist/js/vendor.js`, 'vue2', t);
+    assert.fileContains(`test/fixtures/app/dist/js/vendor.js`, 'Vue.js v2', t);
     assert.fileContains(`test/fixtures/app/dist/js/vendor.js`, 'core-js', t);
 
     let fs = require('fs-extra');
