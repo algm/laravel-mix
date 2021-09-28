@@ -19,11 +19,13 @@ test('that it triggers a callback handler when the Webpack compiler is done', as
 
     await sandbox.createFile(`src/index.js`, `module.exports = 'index.js';`);
 
-    await webpack.compile({
-        entry: sandbox.path.resolve('src/index.js'),
-        output: { path: sandbox.path.resolve('dist') },
-        plugins: [new BuildCallbackPlugin(() => (called = true))]
-    });
+    await webpack.compile([
+        {
+            entry: sandbox.path.resolve('src/index.js'),
+            output: { path: sandbox.path.resolve('dist') },
+            plugins: [new BuildCallbackPlugin(() => (called = true))]
+        }
+    ]);
 
     t.true(called);
 });

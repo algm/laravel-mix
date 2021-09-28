@@ -1,19 +1,30 @@
-module.exports = class Alias {
+const { Component } = require('./Component');
+
+module.exports = class Alias extends Component {
+    /** @type {Record<string, string>} */
+    aliases = {};
+
     /**
      * Add resolution aliases to webpack's config
      *
-     * @param {Record<string,string>} paths
+     * @param {Record<string, string>} paths
      */
     register(paths) {
-        /** @type {Record<string, string>} */
-        this.aliases = { ...(this.aliases || {}), ...paths };
+        this.aliases = { ...this.aliases, ...paths };
     }
 
-    webpackConfig(webpackConfig) {
-        webpackConfig.resolve.alias = webpackConfig.resolve.alias || {};
+    /**
+     *
+     * @param {import('webpack').Configuration} config
+     */
+    webpackConfig(config) {
+        config.resolve = config.resolve || {};
+        config.resolve.alias = config.resolve.alias || {};
 
         for (const [alias, path] of Object.entries(this.aliases)) {
-            webpackConfig.resolve.alias[alias] = Mix.paths.root(path);
+            config.resolve.alias[alias] = this.context.mix.paths.root(path);
         }
+
+        return config;
     }
 };

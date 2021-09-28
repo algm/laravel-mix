@@ -13,7 +13,7 @@ require('./helpers');
  |
  */
 
-let mix = Mix.primary;
+let mix = Mix.shared;
 
 mix.boot();
 

@@ -8,9 +8,11 @@ let AppendVueStylesPlugin = require('../webpackPlugins/Css/AppendVueStylesPlugin
 class Vue {
     /**
      * Create a new component instance.
+     * @param {import('../Build/BuildContext').BuildContext} context
      */
-    constructor() {
-        this.chunks = Chunks.instance();
+    constructor(context) {
+        this.context = context;
+        this.chunks = context.chunks;
     }
 
     /**
@@ -34,7 +36,7 @@ class Vue {
             );
         }
 
-        this.version = new VueVersion(this._mix).detect(options.version);
+        this.version = new VueVersion(this.context.mix).detect(options.version);
 
         this.options = Object.assign(
             {
@@ -46,8 +48,8 @@ class Vue {
             options
         );
 
-        Mix.globalStyles = this.options.globalStyles;
-        Mix.extractingStyles = !!this.options.extractStyles;
+        this.context.globalStyles = this.options.globalStyles;
+        this.context.extractingStyles = !!this.options.extractStyles;
 
         this.addDefines();
     }
@@ -81,8 +83,8 @@ class Vue {
             test: /\.vue$/,
             use: [
                 {
-                    loader: this._mix.resolve('vue-loader'),
-                    options: this.options.options || Config.vue || {}
+                    loader: this.context.resolve('vue-loader'),
+                    options: this.options.options || this.context.config.vue || {}
                 }
             ]
         });
@@ -115,7 +117,9 @@ class Vue {
      * webpack plugins to be appended to the master config.
      */
     webpackPlugins() {
-        let { VueLoaderPlugin } = require(this._mix.resolve('vue-loader'));
+        console.log(this.context.options.name);
+
+        let { VueLoaderPlugin } = require(this.context.resolve('vue-loader'));
 
         return [new VueLoaderPlugin(), new AppendVueStylesPlugin()];
     }
@@ -190,7 +194,7 @@ class Vue {
                 ? this.options.extractStyles
                 : '/css/vue-styles.css';
 
-        return fileName.replace(Config.publicPath, '').replace(/^\//, '');
+        return fileName.replace(this.context.config.publicPath, '').replace(/^\//, '');
     }
 
     /**
@@ -203,19 +207,10 @@ class Vue {
             return;
         }
 
-        this._mix.api.define({
+        this.context.api.define({
             __VUE_OPTIONS_API__: 'true',
             __VUE_PROD_DEVTOOLS__: 'false'
         });
-    }
-
-    /**
-     * @internal
-     * @returns {import("../Mix")}
-     **/
-    get _mix() {
-        // @ts-ignore
-        return global.Mix;
     }
 }
 

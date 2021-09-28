@@ -1,20 +1,22 @@
-class Autoload {
+const { Component } = require('./Component');
+
+class Autoload extends Component {
+    /** @type {Record<string, string | string[]>} */
+    aliases = {};
+
     /**
      * Register the component.
      *
-     * @param  {Object} libs
-     * @return {void}
+     * @param  {Record<string, string | string[]>} libs
      */
     register(libs) {
-        let aliases = {};
+        for (let [library, aliases] of Object.entries(libs)) {
+            const lib = library.includes('.') ? library.split('.') : [library];
 
-        Object.keys(libs).forEach(library => {
-            [].concat(libs[library]).forEach(alias => {
-                aliases[alias] = library.includes('.') ? library.split('.') : library;
-            });
-        });
-
-        this.aliases = aliases;
+            for (const alias of Array.isArray(aliases) ? aliases : [aliases]) {
+                this.aliases[alias] = lib;
+            }
+        }
     }
 
     /**
@@ -23,7 +25,7 @@ class Autoload {
     webpackPlugins() {
         let webpack = require('webpack');
 
-        return new webpack.ProvidePlugin(this.aliases);
+        return [new webpack.ProvidePlugin(this.aliases)];
     }
 }
 

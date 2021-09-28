@@ -4,10 +4,19 @@ import { mix, Mix } from './mix.js';
 
 /**
  *
- * @param {*} shouldInit
- * @returns {Promise<import('webpack').Configuration>}
+ * @typedef {object} CompileResult
+ * @property {import('webpack').Configuration} config The first configuration
+ * @property {import('webpack').Configuration[]} configs All built configurations
+ * @property {import('webpack').MultiStats | undefined} stats Stats for each build
+ * @property {Error | undefined} err Any errors
+ * @returns
  */
-export async function buildConfig(shouldInit = true) {
+
+/**
+ *
+ * @param {boolean} shouldInit
+ */
+export async function buildConfigs(shouldInit = true) {
     if (shouldInit) {
         await Mix.init();
     }
@@ -17,11 +26,23 @@ export async function buildConfig(shouldInit = true) {
 
 /**
  *
- * @param {import('webpack').Configuration} [override]
- * @returns {Promise<{config: import('webpack').Configuration, err: Error | undefined, stats: import('webpack').Stats | undefined}>}
+ * @param {boolean} shouldInit
  */
-export async function compile(override) {
-    const config = override || (await buildConfig());
+export async function buildConfig(shouldInit = true) {
+    const configs = await buildConfigs(shouldInit);
+
+    return configs[0];
+}
+
+/**
+ *
+ * @param {import('webpack').Configuration[]} [config]
+ * @returns {Promise<CompileResult>}
+ */
+export async function compile(config = []) {
+    if (!config.length) {
+        config = await buildConfigs();
+    }
 
     return new Promise((resolve, reject) => {
         webpack(config, (err, stats) => {
@@ -36,7 +57,12 @@ export async function compile(override) {
                     stats
                 });
             } else {
-                resolve({ config, err, stats });
+                resolve({
+                    config: config[0],
+                    configs: config,
+                    err,
+                    stats
+                });
             }
         });
     });
@@ -47,13 +73,16 @@ export async function compile(override) {
  * @param {string|number} version
  */
 export function setupVueAliases(version) {
+    /** @type {typeof Mix} */
+    // @ts-ignore
+    const context = global.Mix;
+
     const vueModule = version === 3 ? 'vue3' : 'vue2';
     const vueLoaderModule = version === 3 ? 'vue-loader16' : 'vue-loader15';
 
-    Mix.resolver.alias('vue', vueModule);
-    Mix.resolver.alias('vue-loader', vueLoaderModule);
-
-    mix.alias({ vue: require.resolve(vueModule) });
+    context.resolver.alias('vue', vueModule);
+    context.resolver.alias('vue-loader', vueLoaderModule);
+    context.api.alias({ vue: require.resolve(vueModule) });
 }
 
 export default { buildConfig, compile, setupVueAliases };

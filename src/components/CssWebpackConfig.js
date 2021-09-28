@@ -1,10 +1,12 @@
 let semver = require('semver');
 let mapValues = require('lodash').mapValues;
-let AutomaticComponent = require('./AutomaticComponent');
+let { Component } = require('./Component');
 let MiniCssExtractPlugin = require('mini-css-extract-plugin');
 let PostCssPluginsFactory = require('../PostCssPluginsFactory');
 
-class CssWebpackConfig extends AutomaticComponent {
+class CssWebpackConfig extends Component {
+    passive = true;
+
     dependencies() {
         this.requiresReload = true;
 

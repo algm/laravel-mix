@@ -4,6 +4,7 @@ let mergeWebpackConfig = require('../builder/MergeWebpackConfig');
 const { Component } = require('./Component');
 
 let components = [
+    'Group',
     'JavaScript',
     'Preact',
     'React',
@@ -66,9 +67,11 @@ class ComponentRegistrar {
     /**
      * Install a component.
      *
+     * @internal
      * @param {import("laravel-mix").Component} ComponentDefinition
+     * @return {import("../../types/component").Component}
      */
-    install(ComponentDefinition) {
+    createComponent(ComponentDefinition) {
         /** @type {import("laravel-mix").Component} */
         let component;
 
@@ -76,12 +79,23 @@ class ComponentRegistrar {
         if (Component.isPrototypeOf(ComponentDefinition)) {
             // @ts-ignore
             // This API is not finalized which is why we've restricted to to the internal component class for now
-            component = new ComponentDefinition(this.mix);
-        } else if (typeof ComponentDefinition === 'function') {
-            component = new ComponentDefinition();
-        } else {
-            component = ComponentDefinition;
+            return new ComponentDefinition(this.mix);
         }
+
+        if (typeof ComponentDefinition === 'function') {
+            return new ComponentDefinition();
+        }
+
+        return ComponentDefinition;
+    }
+
+    /**
+     * Install a component.
+     *
+     * @param {import("../../types/component").Component} ComponentDefinition
+     */
+    install(ComponentDefinition) {
+        const component = this.createComponent(ComponentDefinition);
 
         this.registerComponent(component);
 
