@@ -78,6 +78,19 @@ class Mix {
     }
 
     /**
+     * Load the user's Mix config
+     */
+    async load() {
+        // 1. Pull in the user's mix config file
+        const mod = require(this.paths.mix())
+
+        // Allow the user to export a default `function (mix) { … }` from their config file
+        if (typeof mod.default === 'function') {
+            await mod.default(this.api)
+        }
+    }
+
+    /**
      * @internal
      */
     async build() {
