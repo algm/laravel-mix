@@ -119,7 +119,7 @@ class CustomTasksPlugin {
      */
     applyVersioning() {
         Object.keys(this.mix.manifest.get()).forEach(path => {
-            this.mix.manifest.hash(key)
+            this.mix.manifest.hash(path);
         );
     }
 
