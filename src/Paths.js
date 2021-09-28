@@ -46,11 +46,15 @@ class Paths {
         if (process.env.MIX_FILE) {
             return [
                 process.env.MIX_FILE,
+                `${process.env.MIX_FILE}.mjs`,
+                `${process.env.MIX_FILE}.cjs`,
                 `${process.env.MIX_FILE}.js`,
             ]
         }
 
         return [
+            "webpack.mix.mjs",
+            "webpack.mix.cjs",
             "webpack.mix.js",
         ]
     }

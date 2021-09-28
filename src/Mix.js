@@ -82,9 +82,11 @@ class Mix {
      */
     async load() {
         // 1. Pull in the user's mix config file
-        const mod = require(this.paths.mix())
+        // An ESM import here allows a user's mix config
+        // to be an ESM module and use top-level await
+        const mod = await import(this.paths.mix());
 
-        // Allow the user to export a default `function (mix) { … }` from their config file
+        // Allow the user to `export default function (mix) { … }` from their config file
         if (typeof mod.default === 'function') {
             await mod.default(this.api)
         }
