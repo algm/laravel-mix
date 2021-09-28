@@ -28,19 +28,64 @@ class Paths {
      * Determine the path to the user's webpack.mix.js file.
      */
     mix() {
-        const path = this.root(
-            process.env && process.env.MIX_FILE ? process.env.MIX_FILE : 'webpack.mix'
-        );
+        this._mixFilePath = this._mixFilePath || this.findMixFile();
 
-        try {
-            require.resolve(`${path}.cjs`);
-
-            return `${path}.cjs`;
-        } catch (err) {
-            //
+        // TODO: Add test for this
+        if (this._mixFilePath === null) {
+            throw new Error("Unable to find Mix config file")
         }
 
-        return path;
+        return this._mixFilePath;
+    }
+
+    /**
+     * @internal
+     * @returns
+     */
+    getPossibleMixPaths() {
+        if (process.env.MIX_FILE) {
+            return [
+                process.env.MIX_FILE,
+                `${process.env.MIX_FILE}.js`,
+            ]
+        }
+
+        return [
+            "webpack.mix.js",
+        ]
+    }
+
+    /**
+     * Determine the path to the user's webpack.mix.js file.
+     *
+     * @internal
+     */
+    findMixFile() {
+        /**
+         * TODO: Should we use `mix.resolve` here so it can be mocked?
+         *
+         * @param {string} path
+         * @returns {string|null}
+         */
+        const find = path => {
+            try {
+                return require.resolve(path);
+            } catch (err) {
+                return null;
+            }
+        };
+
+        const paths = this.getPossibleMixPaths().map(path => this.root(path))
+
+        for (const filepath of paths) {
+            const resolvedPath = find(filepath)
+
+            if (resolvedPath) {
+                return resolvedPath
+            }
+        }
+
+        return null;
     }
 
     /**
